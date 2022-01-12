@@ -1,0 +1,31 @@
+&CONTROL
+  dt          = 30.D0,
+  prefix = '',
+  pseudo_dir = './',
+  outdir='./',
+  wf_collect=.true.,
+  verbosity ="high",
+/
+
+&SYSTEM
+  ibrav= 0, nat=  61, ntyp= 1,
+  ecutwfc     = 42.D0,
+  nbnd=244,
+  degauss     = 0.05D0,
+  occupations = "smearing",
+  smearing    = "methfessel-paxton",
+/
+&ELECTRONS
+  electron_maxstep=200,
+  conv_thr    = 1.D-8,
+  mixing_beta = 0.3D0,
+  scf_must_converge=.false.,
+/
+&IONS
+/
+ATOMIC_SPECIES
+Si  28.08  Si.pbe-hgh.UPF
+
+K_POINTS {automatic}
+4 4 4 0 0 0
+

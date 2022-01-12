@@ -1,0 +1,6 @@
+&projwfc                                                                        
+    outdir='./'                                                                 
+    prefix='R0.8-T1200-0'                                                       
+    kresolveddos=.true.                                                         
+    Emin=-25.0, Emax=25.0, DeltaE=0.1                                           
+ / 
