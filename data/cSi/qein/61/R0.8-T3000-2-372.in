@@ -3,12 +3,12 @@
   prefix = 'R0.8-T3000-2-372',
   pseudo_dir = './',
   outdir='./',
-  wf_collect=.true.,
-  verbosity ="high",
+ wf_collect=.true.,
+ verbosity ="high",
 /
 
 &SYSTEM
-  ibrav= 0, nat=  61, ntyp= 1,
+    ibrav= 0, nat=  61, ntyp= 1,
   ecutwfc     = 42.D0,
   nbnd=244,
   degauss     = 0.05D0,
@@ -28,7 +28,6 @@ Si  28.08  Si.pbe-hgh.UPF
 
 K_POINTS {automatic}
 4 4 4 0 0 0
-
 CELL_PARAMETERS angstrom
 10.86000000000000 0.00000000000000 0.00000000000000
 0.00000000000000 10.86000000000000 0.00000000000000
