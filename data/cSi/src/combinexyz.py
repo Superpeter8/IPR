@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 
-def createlabel(filename,output):
+def createdata(filename,output):
     with open(filename, "r") as f:
         lines = f.readlines()
     with open(output, "a") as w:
@@ -19,4 +19,4 @@ def createlabel(filename,output):
 if __name__ == "__main__":
     output='../../../src/data.txt'
     for file in sys.argv[1:]:
-        createlabel(file,output)
+        createdata(file,output)

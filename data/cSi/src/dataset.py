@@ -5,8 +5,8 @@ from combinexyz import *
 from combineIPR import *
 
 if __name__ == "__main__":
-    data="../../../src/data.txt"
-    label="../../../src/label.txt"
+    data="data.txt"
+    label="label.txt"
     if os.path.exists(data):
         os.remove(data)
     if os.path.exists(label):
@@ -27,7 +27,7 @@ if __name__ == "__main__":
         prefix='/'.join(file.split('/')[-2:])[:-13]
         prefices.append(prefix)
         createneighborlist('../qein/'+prefix+'.in')
-        createdata(file,label)
+        createlabel(file,label)
     for prefix in prefices:
         for file in glob.glob('../neighborlist/'+prefix+'.in/*.xyz'):
-            createlabel(file,data)
+            createdata(file,data)

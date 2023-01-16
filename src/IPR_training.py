@@ -2,6 +2,8 @@ import numpy as np
 import random
 import math
 from tensorflow import keras
+from keras_visualizer import visualizer
+import matplotlib.pyplot as plt
 
 random.seed(1)
 
@@ -86,42 +88,44 @@ def Sort(sub_li):
                 sub_li[j + 1] = tempo
     return sub_li
 
-
+high=0.5
+low=0.08
 # read the files
-with open('./label.txt', "r") as label:
-    label_list = []
-    index = 0
-    index0 = []
-    index1 = []
-    index2 = []
-    for line in label:
-        if float(line) < 0.1:  # define the threshold here for low IPR value
-            label_list.append(0)
-            index0.append(index)
-        elif float(line) >= 0.4:  # define the threshold here for high IPR value
-            label_list.append(1)
-            index1.append(index)
-        else:   # this one can be discard if the thresholds are set to the same value,
-            # but it was kept here in case we want to enhance the characteristics of low IPR class
-            label_list.append(2)
-            index2.append(index)
-        index += 1
-
-
-with open('./data.txt', "r") as data:
-    data_list = []
-    for line in data:
-        info = [float(point) for point in line.split(" ")]
-        coordinates = get_coordinates(info)
-        distance_list = get_distance(coordinates)
-        angle_list = get_angle(coordinates)
-        all_list = []   # create the list for data
-        for i in range(len(distance_list)):
-            sublist = all_list.append(distance_list[i] + angle_list[i])
-            # the sublist has the structure: [atom type, distance, 9 angles], total of 11 features per input
-        sorted_list = Sort(all_list)
-        data_list.append(sorted_list)
-
+with open('./label.txt', "r") as labels:
+    with open('./data.txt', "r") as datas:
+        label_list = []
+        data_list = []
+        index = 0
+        index0 = []
+        index1 = []
+        index2 = []
+        for label,data in zip(labels,datas):
+            if float(label)>low and float(label)<high:
+                continue
+            info = [float(point) for point in data.split(" ")]
+            coordinates = get_coordinates(info)
+            distance_list = get_distance(coordinates)
+            try:
+                angle_list = get_angle(coordinates)
+            except:
+                continue
+            all_list = []   # create the list for data
+            for i in range(len(distance_list)):
+                sublist = all_list.append(distance_list[i] + angle_list[i])
+                # the sublist has the structure: [atom type, distance, 9 angles], total of 11 features per input
+            # sorted_list = Sort(all_list)
+            data_list.append(all_list)
+            if float(label) < low:  # define the threshold here for low IPR value
+                label_list.append(0)
+                index0.append(index)
+            elif float(label) >= high:  # define the threshold here for high IPR value
+                label_list.append(1)
+                index1.append(index)
+            else:   # this one can be discard if the thresholds are set to the same value,
+                # but it was kept here in case we want to enhance the characteristics of low IPR class
+                label_list.append(2)
+                index2.append(index)
+            index += 1
 
 random.shuffle(index0)
 random.shuffle(index1)
@@ -130,6 +134,9 @@ index = index1 + index0[:len(index1) * 2]  # + index2[:len(index1)]
 
 random.shuffle(index)
 cut_off = round(len(index) * 0.8)
+
+print("Number of high IPR" + str(len(index1)))
+
 # 80% of data are used for training
 train_index = index[:cut_off]
 
@@ -170,9 +177,19 @@ model = keras.Sequential([
 model.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
+tensorboard_callback = keras.callbacks.TensorBoard(log_dir='logs/fit/',histogram_freq=1)
 
-model.fit(np_train_data, np_train_label, epochs=70, batch_size=16)
+model.fit(np_train_data, np_train_label, epochs=300, batch_size=16,callbacks=[tensorboard_callback])
 test_loss, test_acc = model.evaluate(np_val_data, np_val_label, verbose=1)
 # with the limited data we have now, the model has an accuracy around 60 - 70 percent.
 predictions = model.predict(np_val_data)
+
+maxw=1
+maxcol=0
+for i in range(5,0,-1):
+    maxw=maxw*np.amax(np.absolute(np.array(model.layers[i].get_weights()[0]))[:,maxcol])
+    maxcol=np.argmax(np.absolute(np.array(model.layers[i].get_weights()[0]))[:,maxcol])
+    print(maxw)
+    print(maxcol)
+
 print(predictions, np_val_label)

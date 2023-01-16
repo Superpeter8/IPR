@@ -13,7 +13,7 @@ def createneighborlist(filename):
     try:
         os.mkdir(DIR)
     except OSError as error:
-        return
+        return len(os.listdir(DIR))
     ATOMS = read(filename,format='espresso-in')
     # for atom in ATOMS:
     #     if atom.symbol=='He':
@@ -37,6 +37,7 @@ def createneighborlist(filename):
         output.append(atoms[indices[nbind[0:10]]])
         # print(output)
         write(DIR+str(atom.index)+'.xyz',output)
+    return len(ATOMS)
 
 if __name__ == "__main__":
     for file in sys.argv[1:]:
