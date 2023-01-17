@@ -5,6 +5,7 @@ from tensorflow import keras
 from keras_visualizer import visualizer
 import matplotlib.pyplot as plt
 
+
 random.seed(1)
 
 
@@ -88,7 +89,7 @@ def Sort(sub_li):
                 sub_li[j + 1] = tempo
     return sub_li
 
-high=0.5
+high=0.4
 low=0.08
 # read the files
 with open('./label.txt', "r") as labels:
@@ -133,11 +134,25 @@ index = index1 + index0[:len(index1) * 2]  # + index2[:len(index1)]
 # using index to separate data for training and validation
 
 random.shuffle(index)
-cut_off = round(len(index) * 0.8)
+cut_off = round(len(index) * 0.9)
 
-print("Number of high IPR" + str(len(index1)))
+# allIPR=[]
+# highIPR=[]
+# with open('./label.txt', "r") as labels:
+#     for label in labels:
+#         allIPR.append(float(label))
+#         if float(label) >= 0.6:
+#             highIPR.append(float(label))
+# print("Total IPR " + str(len(allIPR)))
+# print("Number of high IPR " + str(len(highIPR)))
+# fig=plt.figure()
+# n,x,_ =plt.hist(allIPR,bins=40,histtype='step')
+# bin_centers = 0.5*(x[1:]+x[:-1])
+# plt.plot(bin_centers,n)
+# plt.yscale('log')
+# plt.show()
 
-# 80% of data are used for training
+# 90% of data are used for training
 train_index = index[:cut_off]
 
 
@@ -179,17 +194,10 @@ model.compile(optimizer='adam',
               metrics=['accuracy'])
 tensorboard_callback = keras.callbacks.TensorBoard(log_dir='logs/fit/',histogram_freq=1)
 
-model.fit(np_train_data, np_train_label, epochs=300, batch_size=16,callbacks=[tensorboard_callback])
+model.fit(np_train_data, np_train_label, epochs=500, batch_size=16,\
+          validation_data=(np_val_data, np_val_label),validation_freq=10,callbacks=[tensorboard_callback])
 test_loss, test_acc = model.evaluate(np_val_data, np_val_label, verbose=1)
 # with the limited data we have now, the model has an accuracy around 60 - 70 percent.
 predictions = model.predict(np_val_data)
-
-maxw=1
-maxcol=0
-for i in range(5,0,-1):
-    maxw=maxw*np.amax(np.absolute(np.array(model.layers[i].get_weights()[0]))[:,maxcol])
-    maxcol=np.argmax(np.absolute(np.array(model.layers[i].get_weights()[0]))[:,maxcol])
-    print(maxw)
-    print(maxcol)
 
 print(predictions, np_val_label)
