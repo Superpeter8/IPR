@@ -4,6 +4,7 @@ import math
 from tensorflow import keras
 from keras_visualizer import visualizer
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
 
 random.seed(1)
@@ -152,7 +153,7 @@ cut_off = round(len(index) * 0.9)
 # plt.yscale('log')
 # plt.show()
 
-# 90% of data are used for training
+# 80% of data are used for training, 10% for validation, and 10% for testing
 train_index = index[:cut_off]
 
 
@@ -168,10 +169,17 @@ for i in val_index:
     val_data.append(data_list[i])
     val_label.append(label_list[i])
 
+
+val_data, test_data, val_label, test_label = train_test_split(val_data, val_label,
+                                   test_size=0.5,
+                                   shuffle=False)
+
 np_train_data = np.array(train_data)
 np_train_label = np.array(train_label)
 np_val_data = np.array(val_data)
 np_val_label = np.array(val_label)
+np_test_data = np.array(test_data)
+np_test_label = np.array(test_label)
 
 # the model need to be test more data
 model = keras.Sequential([
@@ -192,12 +200,34 @@ model = keras.Sequential([
 model.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
+stop_callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
 tensorboard_callback = keras.callbacks.TensorBoard(log_dir='logs/fit/',histogram_freq=1)
 
 model.fit(np_train_data, np_train_label, epochs=500, batch_size=16,\
-          validation_data=(np_val_data, np_val_label),validation_freq=10,callbacks=[tensorboard_callback])
+          validation_data=(np_val_data, np_val_label),callbacks=[tensorboard_callback])
 test_loss, test_acc = model.evaluate(np_val_data, np_val_label, verbose=1)
 # with the limited data we have now, the model has an accuracy around 60 - 70 percent.
 predictions = model.predict(np_val_data)
 
-print(predictions, np_val_label)
+cnn_model = model = keras.Sequential([
+
+    keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(10, 11, 1)),
+
+    keras.layers.Flatten(),
+
+    keras.layers.Dense(64, activation='relu'),
+
+    keras.layers.Dropout(0.5),
+
+    keras.layers.Dense(2, activation='softmax')
+])
+
+cnn_model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+tensorboard_callback = keras.callbacks.TensorBoard(log_dir='logs/fit/',histogram_freq=1)
+stop_callback = keras.callbacks.EarlyStopping(monitor='loss', patience=5)
+cnn_history = cnn_model.fit(np_train_data, np_train_label, epochs=500, batch_size=16,\
+          validation_data=(np_val_data, np_val_label),callbacks=[tensorboard_callback, stop_callback])
+
+cnn_model.evaluate(np_test_data, np_test_label)
